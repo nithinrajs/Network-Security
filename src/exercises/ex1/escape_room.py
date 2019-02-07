@@ -29,7 +29,7 @@ class EscapeRoom:
 
     def _cmd_look(self, LookParts):
         if len(LookParts) == 0:
-            return "{}\nYou are in a locked room. There is only one door and it has a numeric keypad.Above the door is a clock that reads {}.Across from the door is a large mirror. Below the mirror is an old chest.The room is old and musty and the floor is creaky and warped.".format(self.code,self.time)
+            return "You are in a locked room. There is only one door and it has a numeric keypad.Above the door is a clock that reads {}.Across from the door is a large mirror. Below the mirror is an old chest.The room is old and musty and the floor is creaky and warped.".format(self.time)
         elif len(LookParts) == 1 and LookParts[0] != "in":
             if LookParts[0] == "door" and "glasses" in self.things:
                 key = "".join(sorted(str(self.code)))
