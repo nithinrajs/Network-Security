@@ -18,8 +18,8 @@ class EscapeRoom:
             return "You don't know how to do that."
         result = getattr(self, function)(commandParts[1:])
         self.AdvanceClock()
-        if self.status() == "dead":
-            result += "\nOh no! The clock starts ringing!!! After a few seconds, the room fills with a deadly gas..."        
+        #if self.status() == "dead":
+         #   result += "\nOh no! The clock starts ringing!!! After a few seconds, the room fills with a deadly gas..."        
         return result
 
     def CodeLock(self):
@@ -29,7 +29,7 @@ class EscapeRoom:
 
     def _cmd_look(self, LookParts):
         if len(LookParts) == 0:
-            return "You are in a locked room. There is only one door and it has a numeric keypad.Above the door is a clock that reads {}.Across from the door is a large mirror. Below the mirror is an old chest.The room is old and musty and the floor is creaky and warped.".format(self.time)
+            return "{}\nYou are in a locked room. There is only one door and it has a numeric keypad.Above the door is a clock that reads {}.Across from the door is a large mirror. Below the mirror is an old chest.The room is old and musty and the floor is creaky and warped.".format(self.code,self.time)
         elif len(LookParts) == 1 and LookParts[0] != "in":
             if LookParts[0] == "door" and "glasses" in self.things:
                 key = "".join(sorted(str(self.code)))
@@ -79,9 +79,10 @@ class EscapeRoom:
                 return "Inside the chest you see: a hammer."
             elif LookParts[1] == "chest" and "hammer" in self.things and "chest" in self.StateOpen:
                 return "Inside the chest you see: ."
-            elif LookParts[1] == "board" and "glasses" not in self.things and "board" in self.StateOpen:
+            elif LookParts[1] == "board" and "glasses" not in self.visible and "board" in self.StateOpen:
+                self.visible.append("glasses")
                 return "Inside the board you see: a glasses."
-            elif LookParts[1] == "board" and "glasses" in self.things and  "board" in self.StateOpen:
+            elif LookParts[1] == "board" and "glasses" in self.visible and  "board" in self.StateOpen:
                 return "Inside the board you see: ."
             else:
                 return "You can't look in that!"
@@ -122,7 +123,7 @@ class EscapeRoom:
             elif GetParts[0] == "glasses" and GetParts[2] == "board" and "board" not in self.StateOpen:
                 return "It's not open."
             elif GetParts[0] == "glasses" and GetParts[2] == "board" and "board" in self.StateOpen:
-                self.things.append("glasses")
+                self.visible.append("glasses")
                 return "You got it."
             elif GetParts[0] == "glasses" and GetParts[2] == "board" and "board" in self.StateOpen and "glasses" in self.things:
                 return "You don't see that."
@@ -175,7 +176,6 @@ class EscapeRoom:
             if OpenParts[0] == "chest" and "chest" not in self.visible:
                 return "It's locked."
             elif OpenParts[0] == "door" and "door" not in self.visible:
-                self.StateOpen.append("door")
                 return "It's locked."
             elif OpenParts[0] == "chest" and "chest" in self.visible:
                 self.StateOpen.append("chest")
@@ -214,12 +214,12 @@ class EscapeRoom:
 
     def _cmd_wear(self,WearParts):
         if len(WearParts) == 1:
-            if WearParts[0] == "glasses" and "glasses" not in self.things:
+            if WearParts[0] == "glasses" and "glasses" not in self.visible:
                 return "You don't have a glasses."
-            elif WearParts[0] == "glasses" and "glasses" in self.things not in self.StateOpen:
-                self.StateOpen.append("glasses")
+            elif WearParts[0] == "glasses" and "glasses" in self.visible:
+                self.things.append("glasses")
                 return "You are now wearing the glasses."
-            elif WearParts[0] == "glasses" and "glasses" in self.things in self.StateOpen:
+            elif WearParts[0] == "glasses" and "glasses" in self.things:
                 return "You're already wearing them!"
             else:
                 return "You can't wear that!"
@@ -238,12 +238,13 @@ class EscapeRoom:
     def status(self):                                                       #Reports whether the users is "dead", "locked", or "escaped
         state = [state for state in self.StateOpen if state == "door"]
         state_str = ' '.join(state)     #Check the open list for door object
-        if state_str == "door":
+        if state_str == "door" and self.time > 0:
             return "escaped" #Escaped
-        elif state_str != "door":
-            return "locked"    #Locked
         elif self.time <= 0:
              return "dead" #Dead
+        elif state_str != "door":
+            return "locked"    #Locked
+        
 
     def AdvanceClock(self): #Reduce the timer counter
         self.time -= 1
@@ -259,11 +260,12 @@ def main():
         command = input(">> ")
         output = room.command(command)
         print(output)
-    if room.status() == "escaped":
-        print("Congratulations! You escaped!")
-    else:
-        print("Oh no! The clock starts ringing!!! After a few seconds, the room fills with a deadly gas...")
-
+        if room.status() == "escaped":
+            print("Congratulations! You escaped!")
+            continue
+        elif room.status() == "dead":
+            print("Oh no! The clock starts ringing!!! After a few seconds, the room fills with a deadly gas...")
+            continue
 
 if __name__ == "__main__":
     main()
