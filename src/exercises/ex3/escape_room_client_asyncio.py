@@ -18,7 +18,7 @@ class ClientProtocol(asyncio.Protocol):
         self.loop.stop()
 
 loop = asyncio.get_event_loop()
-coro = loop.create_connection(lambda: ClientProtocol(loop),'', 9999)
+coro = loop.create_connection(lambda: ClientProtocol(loop),'127.0.0.1', 9999) #loopback address added
 loop.run_until_complete(coro)
 try:
     loop.run_forever()
